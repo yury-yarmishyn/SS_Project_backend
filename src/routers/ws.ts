@@ -1,5 +1,5 @@
 import type { WebSocketServer, WebSocket } from 'ws';
-import { handleGameAction } from '../services/ws';
+import { handleGameAction } from '../ws';
 import type { RawData } from 'ws';
 
 /**

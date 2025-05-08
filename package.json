@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start:dev": "ts-node ./src/server.ts --project-dir=project",
+    "start:dev": "ts-node ./src/server.ts",
+    "start:wss": "ts-node ./wss/serverSetup.ts",
     "lint": "eslint \"{src,apps,libs,tests}/**/*.ts\" --fix",
     "migrations:up": "prisma migrate deploy"
   },

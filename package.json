@@ -38,6 +38,7 @@
     "eslint": "^9.26.0",
     "eslint-plugin-prettier": "^5.4.0",
     "eslint-plugin-unused-imports": "^4.1.4",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "wscat": "^6.1.0"
   }
 }

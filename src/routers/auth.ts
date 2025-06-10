@@ -10,9 +10,8 @@ router.post('/register', async (req: Request, res: Response) => {
   try {
     const token = await authService.register(username, password);
     res.cookie('token', token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
+      httpOnly: false,
+      sameSite: 'lax',
       maxAge: 24 * 60 * 60 * 1000,
     });
     res.status(201).json({ message: 'Registration successful' });
@@ -26,9 +25,8 @@ router.post('/login', async (req: Request, res: Response) => {
   try {
     const token = await authService.login(username, password);
     res.cookie('token', token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
+      httpOnly: false,
+      sameSite: 'lax',
       maxAge: 24 * 60 * 60 * 1000,
     });
     res.json({ message: 'Login successful' });

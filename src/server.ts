@@ -1,6 +1,7 @@
 import type { Application, Request, Response } from 'express';
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import type { WebsocketRequestHandler } from 'express-ws';
 import expressWs from 'express-ws';
 import type { RawData, WebSocket } from 'ws';
@@ -16,15 +17,21 @@ import { handleGameAction } from './ws';
 const baseApp: Application = express();
 const port = parseInt(process.env.PORT ?? '3000', 10);
 
-baseApp.use(cors());
+baseApp.use(
+  cors({
+    origin: true,
+    credentials: true,
+  }),
+);
 baseApp.use(express.json());
+baseApp.use(cookieParser());
 
 baseApp.use('/auth', authRouter);
 baseApp.use(authMiddleware); // protect REST
 baseApp.use('/leaderboard', leaderboardRouter);
 
 //
-// 2) “Enhance” with express-ws
+// 2) "Enhance" with express-ws
 //
 const { app, getWss } = expressWs(baseApp);
 // — now `app` has `.ws(path, ...handlers)` on it

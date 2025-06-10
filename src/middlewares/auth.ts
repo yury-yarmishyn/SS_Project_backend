@@ -4,17 +4,16 @@ import { AuthService } from '../services/auth';
 const authService = new AuthService();
 
 /**
- * Protect routes by validating a Bearer JWT.
+ * Protect routes by validating JWT from cookies.
  * On success, attaches decoded payload to req.user.
  */
 export const authMiddleware: RequestHandler = async (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith('Bearer ')) {
+  const token = req.cookies.token;
+  if (!token) {
     res.status(401).json({ message: 'No token provided' });
     return;
   }
 
-  const token = authHeader.slice(7);
   try {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const payload = await authService.verify(token);

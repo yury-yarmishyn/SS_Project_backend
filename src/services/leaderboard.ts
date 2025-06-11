@@ -12,3 +12,14 @@ export async function getLeaderboard() {
     take: 10,
   });
 }
+
+export async function updateLeaderboard(username: string, score: number) {
+  return await prisma.user.update({
+    where: {
+      username: username,
+    },
+    data: {
+      score: score,
+    },
+  });
+}

@@ -16,16 +16,10 @@ export function handleGameAction(
 ): void {
   let action: GameAction;
   try {
-    action = JSON.parse(data.toString()) as GameAction;
+    action = JSON.parse(data.toString()) as any;
   } catch (err) {
     console.error('Invalid message format:', err);
     ws.send(JSON.stringify({ error: 'Invalid JSON' }));
-    return;
-  }
-
-  // Validate action type
-  if (!['move', 'shoot'].includes(action.type)) {
-    ws.send(JSON.stringify({ error: 'Unknown action type' }));
     return;
   }
 

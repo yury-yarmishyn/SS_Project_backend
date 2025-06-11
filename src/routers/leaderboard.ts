@@ -9,4 +9,9 @@ router.get('/', async (req: Request, res: Response) => {
   res.json(result);
 });
 
+router.put('/', async (req: Request, res: Response) => {
+  const result = await getLeaderboard();
+  res.json(result);
+});
+
 export default router;

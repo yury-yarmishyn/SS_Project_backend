@@ -1,4 +1,5 @@
 import prisma from '../prisma/prisma';
+import { randomUUID } from 'crypto';
 
 export async function getLeaderboard() {
   return await prisma.user.findMany({
@@ -14,12 +15,23 @@ export async function getLeaderboard() {
 }
 
 export async function updateLeaderboard(username: string, score: number) {
-  return await prisma.user.update({
-    where: {
-      username: username,
-    },
-    data: {
-      score: score,
+  // Check existing score
+  const existing = await prisma.user.findUnique({ where: { username } });
+
+  // If user exists and the new score is not higher, return existing record as is
+  if (existing && existing.score >= score) {
+    return existing;
+  }
+
+  // Otherwise create or update with the higher score
+  return await prisma.user.upsert({
+    where: { username },
+    update: { score },
+    create: {
+      id: existing?.id ?? randomUUID(),
+      username,
+      password: existing?.password ?? '',
+      score,
     },
   });
 }

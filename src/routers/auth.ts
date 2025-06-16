@@ -14,7 +14,7 @@ router.post('/register', async (req: Request, res: Response) => {
       sameSite: 'lax',
       maxAge: 24 * 60 * 60 * 1000,
     });
-    res.status(201).json({ message: 'Registration successful' });
+    res.status(201).json({ message: 'Registration successful', username, token });
   } catch (err: any) {
     res.status(400).json({ message: err.message });
   }
@@ -29,7 +29,7 @@ router.post('/login', async (req: Request, res: Response) => {
       sameSite: 'lax',
       maxAge: 24 * 60 * 60 * 1000,
     });
-    res.json({ message: 'Login successful' });
+    res.json({ message: 'Login successful', username, token });
   } catch (err: any) {
     res.status(401).json({ message: err.message });
   }

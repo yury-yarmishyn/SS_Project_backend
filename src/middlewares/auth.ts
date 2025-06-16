@@ -15,8 +15,9 @@ export const authMiddleware: RequestHandler = async (req, res, next) => {
   }
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const payload = await authService.verify(token);
+    // Attach decoded payload to request object for downstream handlers
+    (req as any).user = payload;
     next();
     return;
   } catch {

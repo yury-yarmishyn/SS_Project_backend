@@ -3,6 +3,29 @@ import { WebSocket } from 'ws';
 
 import { createRoom, joinRoomByCode, getRoomById, removePlayerFromRoom } from './services/roomManager';
 
+// Map to track active connections per username (single-session enforcement)
+const activeUserSockets = new Map<string, WebSocket>();
+
+function hasActiveSession(username?: string, currentWs?: WebSocket): boolean {
+  if (!username) return false;
+  const existing = activeUserSockets.get(username);
+  return !!existing && existing !== currentWs && existing.readyState === WebSocket.OPEN;
+}
+
+function registerActiveSession(username: string | undefined, ws: WebSocket) {
+  if (!username) return;
+  activeUserSockets.set(username, ws);
+  (ws as any).username = username;
+}
+
+export function removeActiveSession(username?: string, ws?: WebSocket) {
+  if (!username) return;
+  const existing = activeUserSockets.get(username);
+  if (existing === ws || !existing) {
+    activeUserSockets.delete(username);
+  }
+}
+
 export interface IncomingMessage {
   type: string;
   [key: string]: any;
@@ -31,6 +54,18 @@ export function handleGameAction(
   switch (type) {
     case 'roomCreate': {
       const { correlationId, hostId, username } = msg;
+
+      if (hasActiveSession(username, ws)) {
+        ws.send(
+          JSON.stringify({
+            type: 'roomCreate_FAILURE',
+            correlationId,
+            error: 'ACTIVE_SESSION_EXISTS',
+          }),
+        );
+        break;
+      }
+
       const room = createRoom(hostId ?? 'host-' + Math.random().toString(36).slice(2));
 
       // Update host player's username if provided
@@ -38,6 +73,12 @@ export function handleGameAction(
         room.players[0].username = username;
         room.players[0].name = username;
       }
+
+      // Attach identifiers to WebSocket instance for later cleanup
+      (ws as any).playerId = room.hostId;
+      (ws as any).roomId = room.id;
+
+      registerActiveSession(username, ws);
 
       const response = {
         type: 'roomCreate_SUCCESS',
@@ -51,10 +92,23 @@ export function handleGameAction(
     }
 
     case 'roomJoin': {
-      const { correlationId, code, playerId, username } = msg;
+      const { correlationId, code, playerId: incomingId, username } = msg;
+
+      if (hasActiveSession(username, ws)) {
+        ws.send(
+          JSON.stringify({
+            type: 'roomJoin_FAILURE',
+            correlationId,
+            error: 'ACTIVE_SESSION_EXISTS',
+          }),
+        );
+        break;
+      }
+
+      const resolvedId = incomingId ?? 'guest-' + Math.random().toString(36).slice(2);
 
       const room = joinRoomByCode(code, {
-        id: playerId ?? 'guest-' + Math.random().toString(36).slice(2),
+        id: resolvedId,
         username,
         name: username,
         status: 'guest',
@@ -70,6 +124,12 @@ export function handleGameAction(
         );
         break;
       }
+
+      // Remember mapping for disconnection cleanup
+      (ws as any).playerId = resolvedId;
+      (ws as any).roomId = room.id;
+
+      registerActiveSession(username, ws);
 
       const successPayload = {
         type: 'roomJoin_SUCCESS',

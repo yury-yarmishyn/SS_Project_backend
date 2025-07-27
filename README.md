@@ -1,5 +1,64 @@
 # SS Space Shooter – Backend
 
+## 🎮 About the Game
+
+**SS Space Shooter** is an exciting top-down space shooter where players pilot a combat spaceship in a confined arena, battling waves of hostile aliens and striving to survive as long as possible.
+
+### 🎯 Rules and Objectives
+
+- **Main Goal**: Survive as long as possible and achieve the highest score
+- **Controls**: Move the ship around the arena and shoot at enemies
+- **Health**: Player has limited health that decreases upon contact with enemies or their projectiles
+- **Score**: Points are awarded for destroying enemies (1 point for regular enemies, 30 points for bosses)
+- **Healing**: Health items spawn in the arena to restore player's health
+
+### 🌟 Features and Mechanics
+
+#### Enemy Types
+
+| Enemy | Appearance | Description | Health | Reward |
+|:---:|:---:|:---|:---:|:---:|
+| **Shooting Enemy** | ![Shooting Enemy](demo/EnemyBlue.png) | Attacks from a distance with direct projectiles, maintains optimal range from players | 50 HP | 1 point |
+| **Exploding Enemy** | ![Exploding Enemy](demo/EnemyRed.png) | Fast-moving enemy that deals area damage when destroyed or when getting close to players | 30 HP | 1 point |
+| **Circle Shooting Enemy** | ![Circle Shooting Enemy](demo/EnemyGreen.png) | Fires 8 projectiles in all directions simultaneously, orbits around players at medium distance | 80 HP | 1 point |
+| **Boss Enemy** | ![Boss Enemy](demo/EnemyBoss.png) | Powerful opponent with increased health and triple laser attacks, spawns at 50 points then every 100 points | 312 HP | 30 points |
+
+#### Progression System
+- **Escalating Difficulty**: Enemies spawn more frequently and become stronger
+- **Diverse Waves**: Various combinations of enemy types
+- **Leaderboard**: Competition for the best score among players
+
+#### Multiplayer
+- **Cooperative Mode**: Up to 2 players can play together
+- **Room Creation**: Host creates a game room with a unique code
+- **Join by Code**: Second player can join using a 6-digit code
+- **Synchronization**: Real-time synchronization of all player actions
+
+### 🎮 Gameplay and Game Loop
+
+1. **Game Start**: Player chooses between single-player or multiplayer
+2. **Setup**: In multiplayer — creating/joining a room
+3. **Main Loop**:
+   - Move ship to avoid enemies
+   - Shoot at waves of opponents
+   - Collect healing items
+   - Survive against increasing difficulty
+4. **Game End**: After losing all health — save result to leaderboard
+
+### 📸 Game Demo
+
+| Main Menu | Single Player |
+|:---:|:---:|
+| ![Main Menu](demo/SS_menu_demo.jfif) | ![Single Player](demo/SS_gameplay_single_demo.jfif) |
+
+| Multiplayer | Cooperative Play |
+|:---:|:---:|
+| ![Multiplayer](demo/SS_mp_demo.jfif) | ![Cooperative Play](demo/SS_gameplay_mp_demo.jfif) |
+
+---
+
+## 🛠 Техническая документация
+
 This repository contains the backend part of the educational project **Space Shooter**, written in **TypeScript** using **Express**, **WebSocket**, and **Prisma ORM**.
 
 ## 🛠 Tech Stack

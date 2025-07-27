@@ -1,8 +1,8 @@
-# SS Space Shooter – Backend
+# Space Shooter – Backend
 
 ## 🎮 About the Game
 
-**SS Space Shooter** is an exciting top-down space shooter where players pilot a combat spaceship in a confined arena, battling waves of hostile aliens and striving to survive as long as possible.
+**Space Shooter** is a top-down shooter game where players pilot a combat spaceship in a confined arena, battling waves of hostile aliens and striving to survive as long as possible.
 
 ### 🎯 Rules and Objectives
 
@@ -10,7 +10,7 @@
 - **Controls**: Move the ship around the arena and shoot at enemies
 - **Health**: Player has limited health that decreases upon contact with enemies or their projectiles
 - **Score**: Points are awarded for destroying enemies (1 point for regular enemies, 30 points for bosses)
-- **Healing**: Health items spawn in the arena to restore player's health
+- **Healing**: Health items ![Heal Item](demo/HealItem.png) spawn in the arena to restore player's health
 
 ### 🌟 Features and Mechanics
 
@@ -26,24 +26,33 @@
 #### Progression System
 - **Escalating Difficulty**: Enemies spawn more frequently and become stronger
 - **Diverse Waves**: Various combinations of enemy types
-- **Leaderboard**: Competition for the best score among players
+- **Leaderboard**: Competition for the best score among players (requires login, score > 0, only best scores saved)
 
 #### Multiplayer
 - **Cooperative Mode**: Up to 2 players can play together
+- **Multiple Sessions**: Server supports multiple simultaneous game rooms
 - **Room Creation**: Host creates a game room with a unique code
 - **Join by Code**: Second player can join using a 6-digit code
 - **Synchronization**: Real-time synchronization of all player actions
 
+#### Quality of Life Features
+- **Invincibility Frames**: 500ms of immunity after taking damage with visual blinking feedback
+- **Visual Effects**: Particle explosions, camera shake on impacts, and hit-stop effects for satisfying combat feedback
+- **Ghost Trail**: Visual trail effect following the player for enhanced movement perception
+- **Parallax Starfield**: Three-layer animated background with stars moving at different speeds for depth
+- **UI Polish**: Health bars for enemies, glowing player outline, and pulsating arena borders
+- **Smooth Animations**: Fluid transitions and visual feedback for all game interactions
+
 ### 🎮 Gameplay and Game Loop
 
 1. **Game Start**: Player chooses between single-player or multiplayer
-2. **Setup**: In multiplayer — creating/joining a room
+2. **Setup**: In multiplayer – creating/joining a room
 3. **Main Loop**:
    - Move ship to avoid enemies
    - Shoot at waves of opponents
    - Collect healing items
    - Survive against increasing difficulty
-4. **Game End**: After losing all health — save result to leaderboard
+4. **Game End**: After losing all health – save result to leaderboard (if logged in and score > 0)
 
 ### 📸 Game Demo
 
@@ -57,11 +66,42 @@
 
 ---
 
-## 🛠 Техническая документация
+## 🛠 Technical Documentation
 
-This repository contains the backend part of the educational project **Space Shooter**, written in **TypeScript** using **Express**, **WebSocket**, and **Prisma ORM**.
+## 🏗 Backend Architecture
 
-## 🛠 Tech Stack
+### System Overview
+```
+┌─────────────────────────────────────────────────────────┐
+│                     Load Balancer                      │
+└─────────────────────┬───────────────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────────────┐
+│                 Express Server                         │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────────┐   │
+│  │   Auth      │ │ Leaderboard │ │    WebSocket    │   │
+│  │ Middleware  │ │   Router    │ │    Handler      │   │
+│  └─────────────┘ └─────────────┘ └─────────────────┘   │
+└─────────────────────┬───────────────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────────────┐
+│                Service Layer                           │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────────┐   │
+│  │ AuthService │ │ Leaderboard │ │  RoomManager    │   │
+│  │             │ │  Service    │ │                 │   │
+│  └─────────────┘ └─────────────┘ └─────────────────┘   │
+└─────────────────────┬───────────────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────────────┐
+│                 Data Layer                             │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────────┐   │
+│  │  Prisma     │ │ PostgreSQL  │ │   WebSocket     │   │
+│  │   ORM       │ │  Database   │ │  Connections    │   │
+│  └─────────────┘ └─────────────┘ └─────────────────┘   │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Technology Stack
 
 ### Core technologies
 - **Node.js** (v18+) – JavaScript runtime
@@ -78,6 +118,62 @@ This repository contains the backend part of the educational project **Space Sho
 - **cors** – Cross-Origin Resource Sharing configuration
 - **cookie-parser** – cookie handling
 - **express-ws** – WebSocket integration for Express
+
+## 📊 Database Schema
+
+### Entity Relationship Diagram
+```sql
+┌─────────────────┐
+│      User       │
+├─────────────────┤
+│ id: UUID (PK)   │
+│ username: TEXT  │
+│ password: TEXT  │ 
+│ score: INTEGER  │
+│ created_at: TS  │
+│ updated_at: TS  │
+└─────────────────┘
+
+-- Prisma Schema Definition:
+model User {
+  id       String @id @default(uuid())
+  username String @unique
+  password String
+  score    Int    @default(0)
+  
+  @@map("users")
+}
+```
+
+## 🔌 API Endpoints
+
+### Authentication Routes (`/api/auth`)
+```typescript
+POST   /api/auth/register
+  Body: { username: string, password: string }
+  Response: { id: string, username: string, score: number }
+  
+POST   /api/auth/login  
+  Body: { username: string, password: string }
+  Headers: Set-Cookie: authToken=<JWT>; HttpOnly; Secure
+  Response: { id: string, username: string, score: number }
+  
+POST   /api/auth/logout
+  Headers: Clear authToken cookie
+  Response: { message: "Logged out" }
+```
+
+### Leaderboard Routes (`/api/leaderboard`)
+```typescript
+GET    /api/leaderboard
+  Query: ?limit=10&offset=0
+  Response: { users: User[], total: number }
+  
+PUT    /api/leaderboard
+  Body: { username: string, score: number }
+  Response: User (created/updated record)
+  Note: Only updates if new score > existing score
+```
 
 ## 🏗 Project Architecture
 
@@ -99,130 +195,202 @@ src/
     └── prisma.ts        # Prisma Client wrapper
 ```
 
-## 🔄 Connection & Synchronization
+## 🔄 WebSocket Protocol Specification
 
-### WebSocket architecture
+### Connection Lifecycle
+```
+1. Client → WS://host:port/game (with JWT cookie)
+2. Server validates JWT → extracts username
+3. Server checks for existing session → disconnect if found
+4. Store new connection in activeUserSockets Map
+5. Ready for game messages
+```
 
-#### 1. Connection establishment
-- The client connects to the `/game` endpoint.
-- A JWT token from a cookie is validated.
-- A dedicated user session is created and stored.
-
-#### 2. Session management
+### Message Protocol
 ```typescript
-// Enforce a single active session per user
+interface WSMessage {
+  type: string;
+  data: any;
+  correlationId?: string;
+  timestamp: number;
+  playerId?: string;
+}
+
+// Room Management
+type RoomCreateMessage = {
+  type: 'roomCreate';
+  data: { hostId: string };
+}
+
+type RoomJoinMessage = {
+  type: 'roomJoin';  
+  data: { code: string; playerId: string };
+}
+
+// Game State Synchronization  
+type GameStateMessage = {
+  type: 'gameState';
+  data: {
+    players: PlayerState[];
+    enemies: EnemyState[];
+    projectiles: ProjectileState[];
+    timestamp: number;
+  };
+}
+
+type PlayerActionMessage = {
+  type: 'playerPosition' | 'playerShoot';
+  data: { x: number; y: number; [key: string]: any };
+  playerId: string;
+}
+```
+
+### Authority Model
+- **Host Authority**: Enemy spawning, scoring, game events
+- **Peer Authority**: Individual player movements and actions
+- **Server Authority**: Room management, authentication, persistence
+
+### Session Management
+```typescript
+// Single session enforcement
 const activeUserSockets = new Map<string, WebSocket>();
 
-function hasActiveSession(username?: string, currentWs?: WebSocket): boolean {
-  if (!username) return false;
+function validateSession(username: string, ws: WebSocket): boolean {
   const existing = activeUserSockets.get(username);
-  return !!existing && existing !== currentWs && existing.readyState === WebSocket.OPEN;
-}
-```
-
-#### 3. Room manager
-
-**Room structure:**
-```typescript
-interface Room {
-  id: string;            // Room UUID
-  code: string;          // 6-character join code
-  hostId: string;        // Host player ID
-  players: PlayerInfo[]; // Up to 2 players (host + guest)
-  createdAt: number;     // Unix timestamp
-}
-```
-
-**Key operations**
-- `createRoom(hostId)` – create a new room
-- `joinRoomByCode(code, player)` – join by code
-- `removePlayerFromRoom(roomId, playerId)` – remove a player
-- Empty rooms (or rooms whose host left) are deleted automatically.
-
-#### 4. Game-state synchronization
-
-**Message types:**
-- `roomCreate` / `roomJoin` – room management
-- `gameState` – full game state sync
-- `playerPosition` – player position updates
-- `playerShoot` – player shots
-- `enemySpawn` / `enemyAction` – enemies and their actions
-- `scoreUpdate` – score changes
-
-**Broadcast pattern:**
-```typescript
-// Broadcast to every client except the sender
-wss.clients.forEach((client) => {
-  if (client !== ws && client.readyState === WebSocket.OPEN) {
-    client.send(JSON.stringify(msg));
+  if (existing && existing !== ws && existing.readyState === WebSocket.OPEN) {
+    existing.close(1000, 'New session started');
   }
-});
+  activeUserSockets.set(username, ws);
+  return true;
+}
 ```
 
-#### 5. Authoritative model
-- The **Host** is authoritative for enemy spawns and game events.
-- The **Guest** only sends its own actions.
-- Request-response pattern implemented via `correlationId`.
-- Graceful handling of disconnects & reconnects.
+## 🛡 Security Implementation
 
-#### 6. Security
-- JWT authentication for WebSocket connections
-- Single active session per user
-- Validation of incoming messages
-- Automatic resource cleanup on disconnect
+### Authentication Flow
+```typescript
+// JWT Token Generation
+const generateToken = (payload: UserPayload): string => {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+}
+
+// Password Security
+const hashPassword = async (password: string): Promise<string> => {
+  return bcrypt.hash(password, SALT_ROUNDS);
+}
+
+// Cookie Configuration
+app.use(cookieParser());
+const cookieOptions = {
+  httpOnly: true,    // Prevent XSS
+  secure: true,      // HTTPS only
+  sameSite: 'strict' // CSRF protection
+};
+```
+
+### WebSocket Security
+- JWT validation on connection
+- Rate limiting for message types
+- Input sanitization for all payloads
+- CORS configuration for trusted origins
+
+## 🚀 Deployment Architecture
+
+### Container Configuration
+```dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY dist ./dist
+EXPOSE 3000
+CMD ["node", "dist/server.js"]
+```
+
+### Docker Compose Stack
+```yaml
+version: '3.8'
+services:
+  backend:
+    build: .
+    ports: ["3000:3000"]
+    environment:
+      - DATABASE_URL=postgresql://user:pass@db:5432/spaceshooter
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on: [db]
+    
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: spaceshooter
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes: ["db-data:/var/lib/postgresql/data"]
+```
+
+### Performance Monitoring
+- **WebSocket Connections**: Track concurrent connections
+- **Database Queries**: Monitor response times with Prisma metrics
+- **Memory Usage**: Monitor for memory leaks in long-running sessions
+- **Error Rates**: Log and track authentication failures and WebSocket errors
 
 ---
 
-## Requirements
+## 🛠 Development Setup
 
-* Node.js **v18** or newer
-* npm **v9** or newer (bundled with Node)
-* **Docker** and **docker-compose** – only if you want to spin up PostgreSQL quickly
+### Prerequisites
+- **Node.js** v18+ and **npm** v9+
+- **PostgreSQL** (local or Docker)
+- **Docker & Docker Compose** (optional)
 
----
-## Environment variables
+### Environment Configuration
 ```bash
-# Database connection string
+# .env file
 DATABASE_URL="postgresql://postgres:password@localhost:5432/spaceshooter"
-
-# Authentication parameters
-JWT_SECRET="my_super_secret"   # required – any long random string
-JWT_EXPIRES_IN="1h"            # optional, default 1h
-SALT_ROUNDS=10                  # bcrypt salt rounds, default 10
-
-# HTTP/WS server port
+JWT_SECRET="your-super-secret-key-here"
+JWT_EXPIRES_IN="1h"
+SALT_ROUNDS=10
 PORT=3000
 ```
 
----
-## Running PostgreSQL with Docker (optional)
+### Quick Start
 ```bash
-docker-compose up -d   # start container in background
-docker-compose logs -f # view logs (optional)
-```
-The database becomes available at `localhost:5432`; data persists in the `db-data` volume.
+# Install dependencies
+npm install
 
----
-## Applying Prisma migrations
-```bash
-npm run migrations:up   # prisma migrate deploy
-```
-For development:
-```bash
-npx prisma migrate dev --name <migration_name>
-```
+# Setup database (Docker)
+docker-compose up -d db
 
----
-## Starting the server (development)
-```bash
+# Run migrations
+npm run migrations:up
+
+# Start development server
 npm run start:dev
 ```
-* REST & WebSocket server: `http://localhost:${PORT}` (default `3000`)
-* WebSocket endpoint: `ws://localhost:${PORT}/game`
 
----
-## Useful commands
+### Development Commands
 ```bash
-npx prisma studio    # GUI for inspecting the DB
-npx prisma generate  # regenerate Prisma Client
+npm run start:dev        # Start with hot reload
+npm run build           # Compile TypeScript
+npm run migrations:up   # Apply database migrations
+npm run migrations:dev  # Create new migration
+
+# Database tools
+npx prisma studio       # Visual database browser
+npx prisma generate     # Regenerate Prisma client
+npx prisma db seed      # Seed database with test data
+```
+
+### API Testing
+```bash
+# Health check
+curl http://localhost:3000/health
+
+# Test authentication
+curl -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"test","password":"password123"}'
+
+# WebSocket connection test
+wscat -c ws://localhost:3000/game
 ```

@@ -1,6 +1,7 @@
 # Space Shooter – Backend
 
 > **🔗 Related Repository:** [Frontend Repository](https://github.com/yury-yarmishyn/SS_project_frontend)
+
 > **📖 Documentation:** This README contains game description followed by technical documentation below
 
 ## 🎮 About the Game

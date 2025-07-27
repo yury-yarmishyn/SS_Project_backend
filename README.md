@@ -56,13 +56,21 @@
 
 ### 📸 Game Demo
 
-| Main Menu | Single Player |
-|:---:|:---:|
-| ![Main Menu](demo/SS_menu_demo.jfif) | ![Single Player](demo/SS_gameplay_single_demo.jfif) |
+**Main Menu**
+![Main Menu](demo/SS_menu_demo.jfif)
+*The game's main interface showing authentication system, leaderboard and polished UI design with pixel space theme.*
 
-| Multiplayer | Cooperative Play |
-|:---:|:---:|
-| ![Multiplayer](demo/SS_mp_demo.jfif) | ![Cooperative Play](demo/SS_gameplay_mp_demo.jfif) |
+**Single Player Gameplay**
+![Single Player](demo/SS_gameplay_single_demo.jfif)
+*Core gameplay in action: player ship (bottom center) surrounded by various enemy, particle effects from explosions, HUD showing health and score, and the dynamic starfield background.*
+
+**Multiplayer Hub**
+![Multiplayer](demo/SS_mp_demo.jfif)
+*Multiplayer lobby interface where players can create game rooms, join existing rooms using 6-digit codes.*
+
+**Cooperative Gameplay**
+![Cooperative Play](demo/SS_gameplay_mp_demo.jfif)
+*Two players working together in the arena: both player ships visible with distinct outlines, synchronized enemy spawning, shared score system, and real-time multiplayer action.*
 
 ---
 
